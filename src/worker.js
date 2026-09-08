@@ -12,12 +12,14 @@ const PADDING = 0;
 const SIZE_MIN = 16, SIZE_MAX = 128;
 const GAP_MIN = 0, GAP_MAX = 32;
 const RADIUS_MIN = 0, RADIUS_MAX = 24;
+const MAX_ICONS = 50;
 
-// Rate limiting configuration
+// Rate limiting
 const RATE_LIMIT_MAX = 100;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_CLEANUP_MS = 5 * 60_000;
 
+// In-memory store for per-IP request counts (per-isolate, not global)
 const rateLimitStore = new Map();
 let lastCleanup = Date.now();
 
@@ -54,6 +56,11 @@ function escapeAttr(str) {
     .replace(/"/g, '&quot;');
 }
 
+// Check if an icon name exists as an own property (not inherited from Object.prototype)
+function hasIcon(name) {
+  return Object.prototype.hasOwnProperty.call(icons, name);
+}
+
 function validateNumber(paramValue, min, max, defaultValue) {
   if (paramValue === null) return defaultValue;
 
@@ -87,8 +94,8 @@ function validateBoolean(paramValue, defaultValue) {
 }
 
 function renderIcon(name, x, y, index, size, radius, bg, bgcolor) {
+  if (!hasIcon(name)) return '';
   const icon = icons[name];
-  if (!icon) return '';
 
   const clipId = `clip-${index}`;
 
@@ -112,7 +119,7 @@ function renderIcon(name, x, y, index, size, radius, bg, bgcolor) {
 }
 
 function buildSvg(names, perline, size, gap, radius, bg, bgcolor) {
-  const valid = names.filter((n) => icons[n]);
+  const valid = names.filter(hasIcon);
 
   if (valid.length === 0) {
     return `
@@ -179,6 +186,13 @@ export default {
     if (names.length === 0) {
       return new Response(
         'Missing "i" query parameter, e.g. ?i=js,html,css',
+        { status: 400 }
+      );
+    }
+
+    if (names.length > MAX_ICONS) {
+      return new Response(
+        `Too many icons requested: max ${MAX_ICONS}, got ${names.length}`,
         { status: 400 }
       );
     }
@@ -264,6 +278,7 @@ export default {
       'Content-Type': 'image/svg+xml; charset=utf-8',
       'Cache-Control': 'public, max-age=60',
       'Access-Control-Allow-Origin': '*',
+      'X-Content-Type-Options': 'nosniff',
     };
 
     return new Response(svg, { headers });
