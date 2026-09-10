@@ -207,10 +207,20 @@ To suggest an icon, open an issue or add the SVG file directly to the `icons/` f
 
 ---
 
-## License
+## Legal
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
+Icons are collected from [theSVG](https://thesvg.org) and remain the
+property of their respective brand owners. They are used for
+identification purposes only.
+
+This project is **not affiliated with or endorsed by** any of the brands
+whose icons appear here.
+
+- Icons & trademarks: see [NOTICE.md](NOTICE.md)
+- To request icon removal, open an
+  [issue](https://github.com/amrelmahdy001/Charmly/issues).
 ---
 
 <p align="center">Made by <a href="https://github.com/amrelmahdy001">amrelmahdy001</a></p>
